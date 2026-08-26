@@ -3,24 +3,603 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Урок 5. Тестирование браузерных пушей</title>
-    <script src="https://pxl.demo.altcraft.com/ak_container.js?id=NjI0fDQ." ></script>
+
+    <title>Altcraft — практика</title>
+
+    <!-- =========================================================
+         ALTCRAFT CONTAINER
+         ========================================================= -->
+    <script>
+        (function (window, document, dataLayerName, containerID) {
+            window[dataLayerName] = window[dataLayerName] || [];
+            window[dataLayerName].push({
+                'start': new Date().getTime(),
+                event: 'actm-js'
+            });
+
+            var firstScript = document.getElementsByTagName('script')[0];
+            var script = document.createElement('script');
+
+            var dl = dataLayerName !== 'acDataLayer'
+                ? '&l=' + dataLayerName
+                : '';
+
+            script.async = true;
+            script.src =
+                'https://pxl.demo.altcraft.com/actm/js/actm.js?id='
+                + containerID
+                + dl;
+
+            script.type = 'module';
+
+            if (firstScript && firstScript.parentNode) {
+                firstScript.parentNode.insertBefore(script, firstScript);
+            }
+        }(
+            window,
+            document,
+            'acDataLayer',
+            'ATM-34iKF2EgzaaOeZVpR'
+        ));
+    </script>
+
+    <!-- =========================================================
+         OUR DEBUGGING CODE
+         ========================================================= -->
+    <script>
+        window.altcraftDebug = {
+            scriptLoaded: false,
+            events: []
+        };
+
+        function debugLog(message, type = 'info') {
+            const container = document.getElementById('debugLog');
+
+            if (!container) return;
+
+            const item = document.createElement('div');
+            item.className = 'log ' + type;
+
+            const time = new Date().toLocaleTimeString();
+
+            item.innerHTML = `
+                <span class="log-time">${time}</span>
+                <span>${message}</span>
+            `;
+
+            container.prepend(item);
+        }
+
+        // Проверяем, появился ли Altcraft в window
+        function checkAltcraft() {
+            const status = document.getElementById('altcraftStatus');
+            const layerStatus = document.getElementById('layerStatus');
+
+            if (window.acDataLayer) {
+                layerStatus.textContent = 'Создан';
+                layerStatus.className = 'status success';
+
+                debugLog(
+                    'acDataLayer существует. Элементов: ' +
+                    window.acDataLayer.length,
+                    'success'
+                );
+            } else {
+                layerStatus.textContent = 'Не найден';
+                layerStatus.className = 'status error';
+
+                debugLog(
+                    'acDataLayer не найден',
+                    'error'
+                );
+            }
+
+            // Ищем загруженный Altcraft script
+            const scripts = Array.from(document.scripts);
+
+            const altcraftScript = scripts.find(script =>
+                script.src.includes('/actm/js/actm.js')
+            );
+
+            if (altcraftScript) {
+                status.textContent = 'Скрипт найден';
+                status.className = 'status success';
+
+                debugLog(
+                    'Скрипт Altcraft найден на странице',
+                    'success'
+                );
+            } else {
+                status.textContent = 'Не найден';
+                status.className = 'status error';
+
+                debugLog(
+                    'Скрипт Altcraft не найден среди script-тегов',
+                    'error'
+                );
+            }
+        }
+
+        // Следим за загрузкой модульного скрипта косвенно:
+        // проверяем состояние через несколько интервалов.
+        let checks = 0;
+
+        const altcraftChecker = setInterval(() => {
+            checkAltcraft();
+
+            checks++;
+
+            if (checks >= 10) {
+                clearInterval(altcraftChecker);
+            }
+        }, 1000);
+
+        // Проверяем после полной загрузки страницы
+        window.addEventListener('load', () => {
+            setTimeout(checkAltcraft, 500);
+
+            debugLog(
+                'Страница полностью загружена',
+                'info'
+            );
+        });
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #222;
+        }
+
+        header {
+            background: #17191c;
+            color: white;
+            padding: 30px 20px;
+        }
+
+        header .inner {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+        }
+
+        header p {
+            margin: 0;
+            color: #b9bec5;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 15px rgba(0,0,0,.06);
+        }
+
+        .card h2 {
+            margin-top: 0;
+        }
+
+        button {
+            border: 0;
+            border-radius: 8px;
+            padding: 12px 18px;
+            margin: 5px;
+            cursor: pointer;
+            background: #222;
+            color: white;
+            font-size: 14px;
+        }
+
+        button:hover {
+            opacity: .85;
+        }
+
+        button.secondary {
+            background: #e9ecef;
+            color: #222;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .success {
+            background: #d9f7df;
+            color: #176b2c;
+        }
+
+        .error {
+            background: #ffe0e0;
+            color: #9d2020;
+        }
+
+        .info {
+            background: #e3efff;
+            color: #17518f;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .status-row:last-child {
+            border-bottom: 0;
+        }
+
+        #debugLog {
+            background: #101214;
+            color: #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            min-height: 180px;
+            max-height: 350px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .log {
+            padding: 7px 0;
+            border-bottom: 1px solid #292d32;
+        }
+
+        .log.success {
+            background: transparent;
+            color: #7bea91;
+        }
+
+        .log.error {
+            background: transparent;
+            color: #ff7979;
+        }
+
+        .log.info {
+            background: transparent;
+            color: #75b9ff;
+        }
+
+        .log-time {
+            color: #777;
+            margin-right: 10px;
+        }
+
+        pre {
+            background: #f0f1f3;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+
+        @media (max-width: 700px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
-	<button id="init_sub">Подписаться на уведомления</button> // Кнопка подписки
+
+<body>
+
+<header>
+    <div class="inner">
+        <h1>Altcraft Practice Lab</h1>
+        <p>Простая страница для экспериментов с контейнером и событиями.</p>
+    </div>
+</header>
+
+<main>
+
+    <div class="grid">
+
+        <!-- =====================================================
+             STATUS
+             ===================================================== -->
+
+        <section class="card">
+            <h2>Статус</h2>
+
+            <div class="status-row">
+                <span>Altcraft script</span>
+                <span id="altcraftStatus" class="status info">
+                    Проверяем...
+                </span>
+            </div>
+
+            <div class="status-row">
+                <span>acDataLayer</span>
+                <span id="layerStatus" class="status info">
+                    Проверяем...
+                </span>
+            </div>
+
+            <div class="status-row">
+                <span>Количество элементов</span>
+                <strong id="eventCount">0</strong>
+            </div>
+
+            <br>
+
+            <button onclick="checkAltcraft()">
+                Проверить ещё раз
+            </button>
+
+            <button class="secondary" onclick="showDataLayer()">
+                Показать DataLayer
+            </button>
+        </section>
+
+
+        <!-- =====================================================
+             EVENTS
+             ===================================================== -->
+
+        <section class="card">
+            <h2>Тестовые события</h2>
+
+            <p>
+                Нажимай кнопки и смотри, что происходит с
+                <code>acDataLayer</code>.
+            </p>
+
+            <button onclick="sendEvent('button_click')">
+                Button click
+            </button>
+
+            <button onclick="sendEvent('test_event')">
+                Test event
+            </button>
+
+            <button onclick="sendEvent('purchase_test')">
+                Purchase test
+            </button>
+
+            <button onclick="sendEvent('registration')">
+                Registration
+            </button>
+        </section>
+
+    </div>
+
+
+    <!-- =========================================================
+         CUSTOM EVENT
+         ========================================================= -->
+
+    <section class="card" style="margin-top:20px;">
+        <h2>Кастомное событие</h2>
+
+        <p>
+            Можно ввести название события и отправить его в DataLayer.
+        </p>
+
+        <input
+            id="customEventName"
+            type="text"
+            placeholder="Например: product_view"
+            style="
+                padding: 12px;
+                width: 70%;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+            "
+        >
+
+        <button onclick="sendCustomEvent()">
+            Отправить
+        </button>
+    </section>
+
+
+    <!-- =========================================================
+         DATALAYER
+         ========================================================= -->
+
+    <section class="card" style="margin-top:20px;">
+        <h2>acDataLayer</h2>
+
+        <pre id="dataLayerOutput">
+Нажми «Показать DataLayer»
+        </pre>
+    </section>
+
+
+    <!-- =========================================================
+         DEBUG LOG
+         ========================================================= -->
+
+    <section class="card" style="margin-top:20px;">
+        <h2>Debug log</h2>
+
+        <div id="debugLog"></div>
+
+        <br>
+
+        <button class="secondary" onclick="clearLog()">
+            Очистить лог
+        </button>
+    </section>
+
+</main>
+
 
 <script>
-	document.getElementById('init_sub').addEventListener('click', function() { // По клику на кнопку..
-	try {
-		var akPush = new AKPush();
-		akPush.initSubscription() // Покажет форму для подписки
-		}
-	catch (e) {
-		console.log(e); // В случае ошибки выведет сообщение в консоль
-		}
-	});
+    /*
+     * =========================================================
+     * EVENT FUNCTIONS
+     * =========================================================
+     */
+
+    function sendEvent(eventName) {
+
+        if (!window.acDataLayer) {
+            debugLog(
+                'Ошибка: acDataLayer отсутствует. Событие не отправлено.',
+                'error'
+            );
+
+            return;
+        }
+
+        const eventData = {
+            event: eventName,
+            timestamp: new Date().toISOString(),
+            page: window.location.pathname
+        };
+
+        window.acDataLayer.push(eventData);
+
+        debugLog(
+            'Событие отправлено: ' + eventName,
+            'success'
+        );
+
+        updateEventCount();
+    }
+
+
+    function sendCustomEvent() {
+
+        const input = document.getElementById('customEventName');
+
+        const eventName = input.value.trim();
+
+        if (!eventName) {
+            debugLog(
+                'Введите название события.',
+                'error'
+            );
+
+            return;
+        }
+
+        sendEvent(eventName);
+
+        input.value = '';
+    }
+
+
+    /*
+     * =========================================================
+     * SHOW DATALAYER
+     * =========================================================
+     */
+
+    function showDataLayer() {
+
+        const output =
+            document.getElementById('dataLayerOutput');
+
+        if (!window.acDataLayer) {
+
+            output.textContent =
+                'acDataLayer отсутствует';
+
+            return;
+        }
+
+        output.textContent =
+            JSON.stringify(
+                window.acDataLayer,
+                null,
+                2
+            );
+    }
+
+
+    /*
+     * =========================================================
+     * EVENT COUNT
+     * =========================================================
+     */
+
+    function updateEventCount() {
+
+        const count =
+            window.acDataLayer
+                ? window.acDataLayer.length
+                : 0;
+
+        document.getElementById('eventCount')
+            .textContent = count;
+    }
+
+
+    /*
+     * =========================================================
+     * CLEAR LOG
+     * =========================================================
+     */
+
+    function clearLog() {
+
+        document.getElementById('debugLog')
+            .innerHTML = '';
+
+        debugLog(
+            'Лог очищен.',
+            'info'
+        );
+    }
+
+
+    /*
+     * =========================================================
+     * INITIAL CHECK
+     * =========================================================
+     */
+
+    setInterval(updateEventCount, 500);
+
+    setTimeout(() => {
+
+        if (window.acDataLayer) {
+
+            debugLog(
+                'acDataLayer готов к работе.',
+                'success'
+            );
+
+        } else {
+
+            debugLog(
+                'acDataLayer пока не обнаружен.',
+                'error'
+            );
+
+        }
+
+    }, 1500);
 </script>
-<body>
-    <p>Урок 5. Тестирование браузерных пушей</p>
 
 </body>
 </html>
